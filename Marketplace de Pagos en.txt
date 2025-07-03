@@ -1,0 +1,395 @@
+Marketplace de Pagos en ERC20
+
+## Objetivos del proyecto
+- Planificar arquitectura dApp: Diseño completo del ecosistema marketplace
+- Crear token ERC20: Implementar moneda personalizada para pagos
+- Desarrollar NFTs con IPFS: Crear y almacenar activos digitales descentralizados
+- Integrar sistema de pagos: Conectar smart contracts para transacciones ERC20
+- Construir interfaz Web3: Desarrollar frontend con Hardhat y Ethers.js
+
+## Concepto general
+- ¿Qué es un marketplace NFT?: Plataforma para comprar/vender activos digitales únicos
+- Flujo de compra/venta: Transacciones usando tokens personalizados en blockchain
+- Casos de uso reales: Arte digital, coleccionables, credenciales verificables
+
+## Diagrama de arquitectura
+- Contrato ERC20: Token personalizado para pagos
+- Contrato NFT: Gestión de activos digitales únicos
+- Contrato Marketplace: Lógica de compra/venta
+- IPFS + Frontend: Almacenamiento descentralizado y UI
+
+## Librerías necesarias
+- OpenZeppelin: ERC20, ERC721 / Contracts seguros y auditados
+- Hardhat: Entorno de desarrollo / Testing y deploy
+- Ethers.js: Interacción con blockchain / Manejo de transacciones
+- IPFS + dotenv: Almacenamiento descentralizado / Variables de entorno
+
+---
+
+# Paso 1: Diseño del token ERC20
+
+- Nombre y símbolo => Identificadores únicos del token: Diplo (DIP)
+- Supply inicial => 1,000,000 tokens al crear el contrato
+- Función mint para testing => Crear tokens adicionales durante desarrollo
+
+## Código ERC20
+- Importar librería: OpenZeppelin ERC20
+- Constructor: Nombre, símbolo, supply inicial
+- Mint: Función para crear nuevos tokens
+
+## Despliegue del token
+- Script deploy.js: Código para desplegar contrato
+- Red local: Pruebas en Hardhat Network
+- Testnet Amoy: Despliegue en red Polygon de prueba
+
+## Actividad: Probar token en consola
+npx hardhat console => Iniciar consola interactiva
+Verificar balances => Consultar tokens en billeteras
+Probar transferencias => Enviar tokens entre cuentas
+
+---
+
+# Paso 2: Diseño del NFT
+
+### Metadata en IPFS por ejemplo infura
+Estructura JSON con datos del NFT:
+• Nombre del activo
+• Descripción detallada
+• URL de imagen
+• Atributos personalizados
+
+### ERC721Enumerable
+Ventajas sobre ERC721 básico:
+• Funciones para listar tokens
+• Consulta por índice
+• Conteo total de NFTs
+• Mejor para marketplaces
+
+### Código NFT básico
+1. Importar ERC721Enumerable => Librería OpenZeppelin para NFTs avanzados
+2. Constructor => Inicializar nombre y símbolo
+3. Mint con IPFS hash => Crear NFT vinculado a metadata
+
+### Subida a IPFS
+- Infura, Pinata o Web3.Storage => Servicios para subir archivos a IPFS
+- Subir imágenes => Obtener CID único por archivo
+- Crear JSON metadata => Nombre, descripción, URL imagen
+- Vincular al NFT => URI apunta al hash IPFS
+
+### Actividad: Subir imagen y generar metadata
+- Seleccionar imagen => Archivo digital para convertir en NFT
+- Subir a IPFS => Usar uno de los proveedores IPFS para almacenamiento permanente
+- Crear JSON => Estructurar metadata con enlaces IPFS
+- Verificar acceso => Comprobar URL pública funcional
+
+--- 
+
+# Paso 3: Contrato Marketplace
+
+- Publicar NFT: Listar activos con precio en ERC20
+- Comprar con ERC20: Pagar con tokens personalizados
+- Transferencia automática: Smart contract gestiona intercambio
+
+## Funciones principales
+- listNFT(tokenId, price) => Publicar NFT a la venta
+- buyNFT(tokenId) => Comprar NFT usando ERC20
+- retirarGanancias() => Obtener fondos de venta
+
+## Seguridad del Marketplace
+- Verificación de propiedad : require(token.ownerOf == msg.sender)
+- Permisos explícitos : approve / transferFrom
+- Eventos y validaciones : Registro de acciones y verificaciones
+- Prevención de ataques : Validación exhaustiva de entradas
+
+## Integración de contratos
+- Deploy conjunto : NFT, ERC20 y marketplace
+- Referenciar direcciones : Conectar contratos entre sí
+- Verificar permisos : Configurar roles y accesos
+- Probar interacciones : Validar flujo completo
+
+## Actividad: Deploy y testeo local
+- Desplegar contratos : Usar Hardhat para deploy local
+- Ejecutar tests : Verificar funcionalidad básica
+- Simular transacciones : Probar flujo completo de compra/venta
+- Validar eventos : Confirmar emisión correcta
+
+---
+Frontend Web3 - Estructura base
+
+Componentes React -> Interfaz de usuario modular
+Conexión Wallet -> Integración con Metamask
+Providers -> Conexión a blockchain
+Servicios Web3 -> Interacción con contrato
+
+Conexión con Metamask
+1. Web3Modal: Biblioteca para múltiples wallets
+2. eth_requestAccounts: Solicitar permiso de conexión
+3. Obtener Signer: Objeto para firmar transacciones
+4. Verificar conexión: Validar estado y red correct
+
+Mostrar NFTs disponibles
+- Obtener lista: Consultar totalSupply() del contrato
+- Leer metadata: Fetch desde IPFS usando tokenURI
+- Renderizar imágenes: Mostrar visualmente los NFTs
+- Mostrar precios: Información de venta desde marketplace
+
+Publicar NFT
+- Formulario con upload: Subir imagen a IPFS
+- Generar metadata: Crear JSON con datos del NFT
+- Mintear NFT: Crear token con URI de metadata
+- Listar para venta: Establecer precio con listNFT()
+
+Comprar NFT
+- Ver precio ERC20: Mostrar costo en tokens personalizados
+- Aprobar gasto: Autorizar tokens para marketplace
+- Ejecutar compra: Llamar a buyNFT() del contrato
+- Recibir NFT: Actualizar wallet con nuevo activo
+
+Actividad: Flujo completo
+1. Crear NFT: Subir arte a IPFS y mintear
+2. Listar para venta: Establecer precio en ERC20
+3. Aprobar tokens: Autorizar gasto ERC20
+4. Comprar NFT: Ejecutar transacción completa
+
+Manejo de errores
+Transacciones pendientes -> Indicador de carga y Estado de confirmación
+Feedback visual -> Notificaciones toast y Cambios de estado UI
+Errores comunes -> Gas insuficiente y Rechazo de usuario
+Mensajes claros -> Traducir códigos técnicos y Sugerir soluciones
+
+Validaciones UX
+1. Botones con estados
+• Habilitado: acción disponible
+• Deshabilitado: requisitos no cumplidos
+• Loading: transacción en proceso
+• Error: falló la operación
+2. Indicadores visuales
+• Spinners para procesos
+• Barras de progreso
+• Iconos de estado
+• Tooltips explicativos
+3. Mensajes contextuales
+• Información proactiva
+• Alertas preventivas
+• Errores descriptivos
+• Éxito con detalle
+
+Integración IPFS en frontend
+1. Instalar SDK -> npm install web3.storage
+2. Configurar API -> Token de acceso IPFS
+3. Subir archivos -> client.put() desde JavaScript
+4. Mostrar contenido -> Renderizar desde gateway IPFS
+
+Configuración para testnet Amoy
+Archivo .env => PRIVATE_KEY, AMOY_RPC_URL, ETHERSCAN_API_KEY, WEB3STORAGE_TOKEN
+hardhat.config.js:
+networks: {
+amoy: {
+url: process.env.AMOY_RPC_URL
+chainId: 80002
+}
+}
+
+Verificación en blockchain
+- Polygonscan / Etherscan: Exploradores oficiales de blockchain
+- Verificar código: Publicar source code del contrato
+- Validar deploy: Confirmar dirección y bytecode
+- Probar funciones: Interactuar desde interfaz explorer
+
+Actividad: Publicar NFT en Amoy
+- Crear arte digital: Diseñar NFT de prueba
+- Subir a IPFS: Almacenar imagen y metadata
+- Mintear en testnet: Crear NFT en Polygon Amoy
+- Listar y comprar: Probar flujo completo
+
+### A tener en cuenta
+1. Gas y optimización
+- Costos de storage => Almacenamiento onchain es caro
+- Optimizar lógica => Reducir operaciones costosas
+- Minimizar transferencias => Operaciones con tokens consumen gas
+- Evitar loops => Limitar iteraciones en funciones
+
+2. Separación de responsabilidades
+- Un contrato por dominio: Separar ERC20, NFT y Marketplace
+- Interfaces claras: Comunicación por métodos públicos
+- Frontend desacoplado: Separar UI de lógica blockchain
+- Estructura modular: Facilitar actualizaciones y testing
+
+Revisión del flujo completo
+1. Crear NFT: Mint con IPFS metadata
+2. Publicar: Listar con precio ERC20
+3. Comprar: Adquirir con tokens
+4. Transferir: NFT cambia de dueño
+
+Desafíos técnicos -> IPFS down (Gateway caído, CID incorrecto, Metadata no encontrada), Error de approve (Falta autorización, Monto insuficiente, Owner incorrecto) y Race conditions (Transacciones simultáneas, Estado inconsistente, Reordenamiento en mempool).
+Alternativas a IPFS -> Arweave, Filecoin o NFT.Storage.
+Alternativas de UX Web3 -> WalletConnect, RainbowKit, Magic Link o Social Login.
+
+Seguridad Web3 -> Validar firmas (Verificar autenticidad de mensajes), Prevenir replay atacks (Usar nonces o timestamps), Approval exhaust (Evitar aprobaciones ilimitadas).
+
+Extensiones futuras (no implementar): Subastas, Royalties, Ranking y Perfiles de usuarios
+
+### Actividad: Proponer mejoras
+1. Identificar limitaciones: Problemas del marketplace actual
+2. Diseñar solución: Mejora técnica o de UX
+3. Planificar implementación: Cambios en contratos o frontend
+4. Presentar propuesta: Compartir con el grupo
+
+---
+
+## Cierre y próximos pasos
+- Práctica guiada: Desarrollar colección NFT propia
+- Marketplace completo: Implementar funcionalidades avanzadas
+- Lanzamiento: Publicar proyecto en mainnet
+
+### Contrato ERC20 personalizado
+- Estructura básica
+Contract MiToken implementa ERC20:
+• SPDX-License-Identifier
+• Versión pragma ^0.8.19
+• Import OpenZeppelin
+- Constructor
+Inicialización del token:
+• Nombre: "MiToken"
+• Símbolo: "MTK"
+• Supply: 1M tokens
+
+### Contrato ERC721 para NFT
+Estructura -> ERC721Enumerable + Ownable
+Metadata -> Nombre: "MiNFT", Símbolo: "MNFT"
+Función mint -> _safeMint con nextTokenId
+Control de acceso -> onlyOwner para proteger mint
+
+### Estructura del Marketplace
+Struct Listing -> Datos del NFT en venta
+address seller -> Vendedor original del NFT
+uint price -> Precio en tokens ERC20
+mapping listings -> Asocia tokenId con su Listing
+
+### Función para listar NFTs
+transferFrom -> NFT del usuario al contrato
+Registro de datos -> Crear Listing con detalles
+Evento NFTListed -> Notificar nueva publicación
+Verificaciones -> Validar precio > 0
+
+### Función para comprar NFTs
+- Recuperar datos: Obtener Listing del mapping
+- Transferir tokens: ERC20 del comprador al vendedor
+- Transferir NFT: Enviar NFT al comprador
+- Limpiar estado: Eliminar Listing finalizada
+
+### Eventos para trazabilidad
+- event NFTListed
+Campos indexados:
+• address seller
+• address nft
+• uint tokenId
+• uint price
+- event NFTPurchased
+Campos indexados:
+• address buyer
+• address nft
+• uint tokenId
+• uint price
+- Beneficios
+• Historial completo
+• Actualizaciones UI
+• Filtrado eficiente
+• Análisis offchain
+
+### Función con eventos
+1. Transferir NFT: Del vendedor al contrato marketplace
+2. Guardar información: Almacenar datos en mapping listings
+3. Emitir evento: emit NFTListed con todos los datos
+4. Actualizar frontend: La UI escucha y muestra nuevo NFT
+
+### Retiro de ganancias
+1. mapping ganancias: Registro de fondos por usuario
+2. Validación: require(monto > 0, "Nada para retirar")
+3. Patrón Pull Payment: Previene ataques de reentrancia
+
+### Listar múltiples NFTs
+-  Validación de arrays => tokenIds.length == precios.length
+- Iteración controlada => for loop con longitud limitada
+- Listing individual => listNFT() para cada elemento
+
+### Validación y control de errores
+- Precio válido : require(price > 0)
+-Propiedad del NFT : require(token.ownerOf == msg.sender)
+- Custodia correcta : require(NFT en contrato)
+- Mensajes descriptivos : Errores claros para debugging
+
+### Conectar Metamask
+- Verificar disponibilidad : if (window.ethereum) 1
+- Solicitar cuentas : eth_requestAccounts
+- Obtener dirección : cuentas[0] del usuario
+- Crear provider y signer : Objetos para interactuar con blockchain
+
+### Mostrar NFTs disponibles
+- Consultar totalSupply() : Obtener cantidad de NFTs
+- tokenByIndex(i) : Obtener ID de cada NFT
+- tokenURI(id) : Obtener URL de metadata
+- fetch(uri) : Descargar JSON desde IPFS
+
+### Cargar archivos a IPFS
+- Configurar cliente : Web3Storage con API key
+- Preparar archivo : Imagen o JSON para subir
+- client.put([file]) : Upload a IPFS network
+- Generar URL : https://${cid}.ipfs.w3s.link/${filename}
+
+### Publicar NFT desde frontend
+- Inicializar contrato : new ethers.Contract(address, abi, signer)
+- Preparar parámetros : tokenId y precio en tokens
+- Llamar a listNFT : contrato.listNFT(params)
+- Esperar confirmación : await tx.wait()
+
+### Aprobar token ERC20 para compra
+- Inicializar contrato ERC20 : Con dirección y ABI del token
+- Llamar approve() : Autorizar gasto al marketplace
+- Especificar monto : Cantidad de tokens a gastar
+- Esperar confirmación : Transacción confirmada en blockchain
+
+### Comprar NFT desde frontend
+- Inicializar marketplace : Contrato con dirección y signer
+- Seleccionar NFT : Identificar por tokenId
+- Especificar token : Dirección del ERC20
+- Ejecutar compra : contrato.buyNFT(tokenId, tokenAddr)
+
+### Leer eventos desde frontend
+- Configurar listener
+Código para escuchar eventos:
+• contratoMarketplace.on
+• "NFTListed" como evento
+• Función callback
+• Parámetros del evento
+- Procesar evento
+Acciones al recibir notificación:
+• Extraer datos (seller, nft, tokenId, price)
+• Actualizar UI
+• Notificar al usuario
+• Registrar en consola
+
+### Mostrar balance ERC20
+- Obtener balance : contratoERC20.balanceOf(cuenta)
+- Formatear unidades : ethers.utils.formatUnits(balance, 18)
+- Actualizar interfaz : document.getElementById("balance").innerText
+- Refrescar periódicamente : Actualizar tras transacciones
+
+### Manejo de errores en transacciones
+- Estructura try/catch
+• try { tx = await... }
+• catch (error) { ... }
+- Errores comunes
+• Falta de aprobación
+• Gas insuficiente
+• Rechazo de usuario
+- Mensajes útiles
+• Traducir error.message
+• Sugerir soluciones
+• Mostrar códigos para debugging
+
+### Confirmar red de Metamask
+1. Verificar network -> Version window.ethereum.networkVersion
+2. Comparar con Amoy -> Debe ser '80002' (Polygon Amoy)
+3. Mostrar alerta -> Si la red es incorrecta
+4. Sugerir cambio -> Guiar al usuario para cambiar red
