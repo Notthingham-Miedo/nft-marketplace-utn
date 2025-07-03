@@ -1,0 +1,39 @@
+Flujo 1: Configuración del Entorno y Token ERC20
+Objetivo: Establecer las bases del proyecto y crear el token de pago
+
+Configuración de Hardhat y dependencias (OpenZeppelin, Ethers.js, dotenv)
+Implementación del contrato ERC20 personalizado "Diplo (DIP)"
+Scripts de deploy para red local
+Actividad de cierre: Probar token en consola de Hardhat (verificar balances, transferencias)
+
+Flujo 2: NFTs y Almacenamiento Descentralizado
+Objetivo: Crear y gestionar activos digitales únicos
+
+Configuración de IPFS (Infura, Pinata o Web3.Storage)
+Implementación del contrato ERC721Enumerable
+Gestión de metadata en formato JSON
+Actividad de cierre: Subir imagen a IPFS, generar metadata y mintear NFT de prueba
+
+Flujo 3: Smart Contract del Marketplace
+Objetivo: Crear la lógica de compra/venta
+
+Implementación del contrato Marketplace con funciones principales
+Integración de seguridad y validaciones
+Sistema de eventos para trazabilidad
+Actividad de cierre: Deploy y testeo local del ecosistema completo (ERC20 + NFT + Marketplace)
+
+Flujo 4: Frontend Web3 - Interfaz de Usuario
+Objetivo: Crear la interfaz para interactuar con los contratos
+
+Configuración de React con Web3Modal/Metamask
+Componentes para mostrar NFTs disponibles
+Funcionalidades de publicar y comprar NFTs
+Actividad de cierre: Flujo completo en local (crear NFT, listar, aprobar tokens, comprar)
+
+Flujo 5: Despliegue en Testnet y Validación
+Objetivo: Publicar y probar en red real
+
+Configuración de testnet Amoy (Polygon)
+Deploy de contratos en testnet
+Verificación en exploradores de blockchain
+Actividad de cierre: Publicar NFT en Amoy y probar flujo completo en testnet
