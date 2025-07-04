@@ -2,6 +2,7 @@ import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useAccount } from "wagmi";
 import NFTList from "./components/NFTList";
 import MintNFT from "./components/MintNFT";
+import DebugPanel from "./components/DebugPanel";
 import "./App.css";
 
 function App() {
@@ -29,6 +30,8 @@ function App() {
           </div>
         )}
       </main>
+
+      <DebugPanel />
     </div>
   );
 }

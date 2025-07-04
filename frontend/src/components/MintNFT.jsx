@@ -43,6 +43,11 @@ function MintNFT() {
         return;
       }
 
+      // Mostrar info si se usan placeholders
+      if (result.isPlaceholder) {
+        console.log('📝 Usando placeholders para testing (credenciales de Pinata no válidas)');
+      }
+
       // Mintear NFT
       mintNFT({
         address: diploNFT.address,

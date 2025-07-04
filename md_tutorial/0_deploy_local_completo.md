@@ -45,12 +45,27 @@ VITE_PINATA_SECRET_KEY=tu_pinata_secret_key
 VITE_PINATA_JWT=tu_pinata_jwt_token
 ```
 
-**⚠️ IMPORTANTE:** Para testing local, las variables de Pinata son necesarias solo para la funcionalidad de subir imágenes. Puedes usar estas de prueba temporalmente:
+**⚠️ IMPORTANTE sobre las credenciales de Pinata:**
+
+Para obtener credenciales válidas de Pinata:
+1. Ir a [https://pinata.cloud](https://pinata.cloud)
+2. Crear cuenta gratuita
+3. Ir a **API Keys** → **New Key**
+4. Copiar API Key, Secret y JWT
+
+**Para testing rápido sin credenciales:**
+El sistema incluye un sistema de fallback que usa placeholders automáticamente:
 ```bash
 VITE_PINATA_API_KEY=test_key
 VITE_PINATA_SECRET_KEY=test_secret
 VITE_PINATA_JWT=test_jwt
 ```
+
+Con estas credenciales de prueba, el sistema:
+- ✅ Permite crear NFTs
+- ✅ Usa imágenes placeholder de [Lorem Picsum](https://picsum.photos)
+- ✅ Funciona completamente para testing del marketplace
+- ⚠️ No sube archivos reales a IPFS
 
 ### 1.3. Compilar contratos
 ```bash
@@ -233,18 +248,33 @@ npm run dev
 4. Verificar que está conectado en la red Hardhat Local
 5. Verificar que aparece el botón de desconexión
 
-### 6.2. Verificar balance de tokens DIP
+### 6.2. Verificar configuración con el Panel de Debug
+1. **Buscar el botón 🐛** en la esquina inferior derecha
+2. **Hacer clic** para abrir el panel de debug
+3. **Verificar variables de entorno:**
+   - ✅ PINATA_API_KEY: debe mostrar tu API key o "test_key"
+   - ✅ PINATA_SECRET_KEY: debe mostrar "Configurado" o "No configurado"
+   - ✅ PINATA_JWT: debe mostrar tu JWT o "test_jwt"
+
+**Si aparece "No configurado":**
+- Verificar que el archivo `frontend/.env` existe
+- Verificar que las variables tienen el prefijo `VITE_`
+- Reiniciar el servidor frontend (`npm run dev`)
+
+### 6.3. Verificar balance de tokens DIP
 En la consola del navegador (F12), ejecutar:
 ```javascript
 // Verificar que la conexión funciona
 console.log("Wallet conectada:", window.ethereum.selectedAddress);
 ```
 
-### 6.3. Crear y mintear un NFT
+### 6.4. Crear y mintear un NFT
 
-**⚠️ NOTA:** Para esta prueba, puedes usar cualquier imagen o crear un archivo de prueba simple.
+**📸 Selección de imagen:**
+- **Con credenciales válidas de Pinata:** Cualquier archivo .jpg, .png, .gif
+- **Con credenciales de prueba:** Cualquier archivo (se usará imagen placeholder)
 
-1. **Seleccionar imagen:** Cualquier archivo .jpg, .png, .gif
+1. **Seleccionar imagen:** Cualquier archivo de imagen
 2. **Completar formulario:**
    - **Nombre:** "Mi Primer NFT"
    - **Descripción:** "NFT de prueba para el marketplace"
@@ -252,10 +282,15 @@ console.log("Wallet conectada:", window.ethereum.selectedAddress);
 3. **Hacer clic en "Crear NFT"**
 
 **Flujo esperado:**
-1. ⏳ "Subiendo a IPFS..." (puede fallar si no tienes credenciales válidas de Pinata)
+1. ⏳ "Subiendo a IPFS..." 
+   - ✅ **Con Pinata:** Sube archivo real
+   - 🔄 **Sin Pinata:** Usa imagen placeholder automáticamente
 2. ⏳ "Minteando..." (Metamask solicita confirmación)
 3. ✅ Transacción confirmada
 4. 🔄 El NFT aparece en la lista
+
+**💡 Verificar en consola:**
+Si ves el mensaje "📝 Usando placeholders para testing", significa que el sistema está funcionando correctamente en modo de prueba.
 
 ### 6.4. Listar NFT en el marketplace
 1. **Buscar tu NFT en la lista**
