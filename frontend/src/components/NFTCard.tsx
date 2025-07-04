@@ -1,4 +1,4 @@
-import React, { Fragment } from 'react';
+import React, { Fragment, useState } from 'react';
 import { NFTData } from '../hooks/useNFTList';
 import { getIPFSUrl } from '../services/pinata';
 import { formatUnits } from 'viem';
@@ -13,12 +13,24 @@ interface NFTCardProps {
 export const NFTCard: React.FC<NFTCardProps> = ({ nft, onRefresh }) => {
   const { address } = useAccount();
   const { buyNFT, isPending } = useBuyNFT();
+  const [imageError, setImageError] = useState(false);
 
   const handleBuy = async () => {
     if (nft.price) {
       await buyNFT(nft.tokenId, nft.price);
       onRefresh?.();
     }
+  };
+
+  const handleImageError = () => {
+    setImageError(true);
+  };
+
+  const getImageSrc = () => {
+    if (imageError || !nft.metadata?.image) {
+      return `https://via.placeholder.com/300x300/6366f1/ffffff?text=NFT+%23${nft.tokenId}`;
+    }
+    return getIPFSUrl(nft.metadata.image);
   };
 
   const isOwner = address?.toLowerCase() === nft.owner.toLowerCase();
@@ -28,17 +40,13 @@ export const NFTCard: React.FC<NFTCardProps> = ({ nft, onRefresh }) => {
     <div className="bg-white rounded-lg shadow-md overflow-hidden">
       {/* Imagen del NFT */}
       <div className="aspect-w-1 aspect-h-1 w-full overflow-hidden bg-gray-200">
-        {nft.metadata?.image ? (
-          <img
-            src={getIPFSUrl(nft.metadata.image)}
-            alt={nft.metadata.name || `NFT #${nft.tokenId}`}
-            className="h-48 w-full object-cover object-center group-hover:opacity-75"
-          />
-        ) : (
-          <div className="flex items-center justify-center h-48 bg-gray-300">
-            <span className="text-gray-500">Cargando imagen...</span>
-          </div>
-        )}
+        <img
+          src={getImageSrc()}
+          alt={nft.metadata?.name || `NFT #${nft.tokenId}`}
+          className="h-48 w-full object-cover object-center group-hover:opacity-75"
+          onError={handleImageError}
+          loading="lazy"
+        />
       </div>
 
       {/* Información del NFT */}
