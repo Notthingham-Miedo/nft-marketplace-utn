@@ -22,9 +22,20 @@ contract DiploNFT is ERC721Enumerable, Ownable {
     function mintNFT(
         address to,
         string memory ipfsHash
-    ) public onlyOwner returns (uint256) {
+    ) public returns (uint256) {
         uint256 tokenId = _nextTokenId++;
         _safeMint(to, tokenId);
+        _setTokenURI(tokenId, ipfsHash);
+        return tokenId;
+    }
+
+    /**
+     * @dev Mintea un nuevo NFT con metadata IPFS (función pública)
+     * @param ipfsHash Hash IPFS del metadata JSON
+     */
+    function mint(string memory ipfsHash) public returns (uint256) {
+        uint256 tokenId = _nextTokenId++;
+        _safeMint(msg.sender, tokenId);
         _setTokenURI(tokenId, ipfsHash);
         return tokenId;
     }

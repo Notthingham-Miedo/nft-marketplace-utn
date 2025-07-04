@@ -13,6 +13,13 @@ export const nftAbi = [
     "type": "function"
   },
   {
+    "inputs": [{"internalType": "string", "name": "ipfsHash", "type": "string"}],
+    "name": "mint",
+    "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
     "inputs": [],
     "name": "totalSupply",
     "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],

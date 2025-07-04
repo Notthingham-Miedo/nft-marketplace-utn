@@ -20,11 +20,11 @@ export const useCreateNFT = () => {
   const { address } = useAccount();
   const [isCreating, setIsCreating] = useState(false);
 
-  // Hook para mint NFT
+  // Hook para mint NFT (usando la función pública 'mint')
   const { writeAsync: mintAsync } = useContractWrite({
     address: CONTRACT_ADDRESSES.NFT,
     abi: nftAbi,
-    functionName: 'mintNFT',
+    functionName: 'mint',
   });
 
   const createAndListNFT = async (nftData: CreateNFTData) => {
@@ -58,9 +58,9 @@ export const useCreateNFT = () => {
 
       toast.info('Creando NFT...');
 
-      // 4. Mint NFT con URL completa de metadata
+      // 4. Mint NFT con URL completa de metadata (mint se hace automáticamente al usuario conectado)
       await mintAsync({
-        args: [address, metadataUrl],
+        args: [metadataUrl],
       });
 
       toast.success('NFT creado exitosamente!');

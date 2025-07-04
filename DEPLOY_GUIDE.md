@@ -110,6 +110,22 @@ type contract-addresses.json
 
 Ahora deberías ver **10,000 ETH** en tu wallet!
 
+## 🎯 Importante: Crear NFTs con cualquier cuenta
+
+**¡NUEVO!** Ahora cualquier usuario puede crear NFTs, no solo la Account #0.
+
+### Cuentas preconfiguradas con tokens DIP:
+- **Account #1:** `0x70997970C51812dc3A010C7d01b50e0d17dc79C8` - 1,000,000 DIP
+- **Account #2:** `0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC` - 500 DIP  
+- **Account #3:** `0x90F79bf6EB2c4f870365E785982E1f101E93b906` - 500 DIP
+
+### Para importar otras cuentas en Metamask:
+```
+Account #1 Private Key: 0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d
+Account #2 Private Key: 0x5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a
+Account #3 Private Key: 0x7c852118294e51e653712a81e05800f419141751be58f605c371e15141b007a6
+```
+
 ## 📱 Paso 5: Configurar el Frontend
 
 ### 5.1 Navegar al frontend
