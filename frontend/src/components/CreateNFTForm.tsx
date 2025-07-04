@@ -16,6 +16,7 @@ export const CreateNFTForm: React.FC<CreateNFTFormProps> = ({ onSuccess }) => {
   });
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>('');
+  const [shouldList, setShouldList] = useState(false);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -60,10 +61,17 @@ export const CreateNFTForm: React.FC<CreateNFTFormProps> = ({ onSuccess }) => {
       return;
     }
 
+    if (shouldList && (!formData.price || parseFloat(formData.price) <= 0)) {
+      alert('Por favor ingresa un precio válido para listar el NFT');
+      return;
+    }
+
     try {
       await createAndListNFT({
         ...formData,
         image: selectedImage,
+        shouldList,
+        price: shouldList ? formData.price : '',
       });
       
       // Limpiar formulario
@@ -75,6 +83,7 @@ export const CreateNFTForm: React.FC<CreateNFTFormProps> = ({ onSuccess }) => {
       });
       setSelectedImage(null);
       setImagePreview('');
+      setShouldList(false);
       
       onSuccess?.();
     } catch (error) {
@@ -169,19 +178,37 @@ export const CreateNFTForm: React.FC<CreateNFTFormProps> = ({ onSuccess }) => {
 
         {/* Precio */}
         <div>
-          <label htmlFor="price" className="block text-sm font-medium text-gray-700">
-            Precio (DIP tokens)
-          </label>
-          <input
-            type="number"
-            id="price"
-            step="0.01"
-            min="0"
-            value={formData.price}
-            onChange={(e) => setFormData(prev => ({ ...prev, price: e.target.value }))}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-            required
-          />
+          <div className="flex items-center mb-2">
+            <input
+              type="checkbox"
+              id="shouldList"
+              checked={shouldList}
+              onChange={(e) => setShouldList(e.target.checked)}
+              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+            />
+            <label htmlFor="shouldList" className="ml-2 text-sm font-medium text-gray-700">
+              Listar para venta inmediatamente
+            </label>
+          </div>
+          
+          {shouldList && (
+            <div>
+              <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-1">
+                Precio (DIP tokens)
+              </label>
+              <input
+                type="number"
+                id="price"
+                step="0.01"
+                min="0"
+                value={formData.price}
+                onChange={(e) => setFormData(prev => ({ ...prev, price: e.target.value }))}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                required={shouldList}
+                placeholder="Ingresa el precio en tokens DIP"
+              />
+            </div>
+          )}
         </div>
 
         {/* Atributos */}
@@ -237,7 +264,10 @@ export const CreateNFTForm: React.FC<CreateNFTFormProps> = ({ onSuccess }) => {
               : 'bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
           }`}
         >
-          {isPending ? 'Creando NFT...' : 'Crear NFT'}
+          {isPending 
+            ? (shouldList ? 'Creando y listando NFT...' : 'Creando NFT...') 
+            : (shouldList ? 'Crear y listar NFT' : 'Crear NFT')
+          }
         </button>
       </form>
     </div>

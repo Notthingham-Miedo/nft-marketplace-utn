@@ -1,9 +1,10 @@
-import { useContractWrite, useAccount } from 'wagmi';
+import { useContractWrite, useAccount, useContractRead } from 'wagmi';
 import { CONTRACT_ADDRESSES } from '../config/wagmi';
-import { nftAbi } from '../constants/abis';
+import { nftAbi, marketplaceAbi } from '../constants/abis';
 import { uploadImageToPinata, uploadJSONToPinata, NFTMetadata } from '../services/pinata';
 import { toast } from 'react-toastify';
 import { useState } from 'react';
+import { parseUnits } from 'viem';
 
 export interface CreateNFTData {
   name: string;
@@ -14,6 +15,7 @@ export interface CreateNFTData {
     value: string | number;
   }>;
   price: string; // En tokens DIP
+  shouldList?: boolean; // Si se debe listar automáticamente
 }
 
 export const useCreateNFT = () => {
@@ -27,9 +29,36 @@ export const useCreateNFT = () => {
     functionName: 'mint',
   });
 
+  // Hook para aprobar NFT
+  const { writeAsync: approveAsync } = useContractWrite({
+    address: CONTRACT_ADDRESSES.NFT,
+    abi: nftAbi,
+    functionName: 'approve',
+  });
+
+  // Hook para listar NFT
+  const { writeAsync: listAsync } = useContractWrite({
+    address: CONTRACT_ADDRESSES.MARKETPLACE,
+    abi: marketplaceAbi,
+    functionName: 'listNFT',
+  });
+
+  // Hook para obtener totalSupply (para conocer el siguiente tokenId)
+  const { data: totalSupply } = useContractRead({
+    address: CONTRACT_ADDRESSES.NFT,
+    abi: nftAbi,
+    functionName: 'totalSupply',
+    enabled: !!CONTRACT_ADDRESSES.NFT,
+  });
+
   const createAndListNFT = async (nftData: CreateNFTData) => {
     if (!address) {
       toast.error('Conecta tu wallet primero');
+      return;
+    }
+
+    if (nftData.shouldList && (!nftData.price || parseFloat(nftData.price) <= 0)) {
+      toast.error('Precio inválido para listar el NFT');
       return;
     }
 
@@ -58,16 +87,37 @@ export const useCreateNFT = () => {
 
       toast.info('Creando NFT...');
 
-      // 4. Mint NFT con URL completa de metadata (mint se hace automáticamente al usuario conectado)
+      // 4. Obtener el próximo tokenId
+      const nextTokenId = totalSupply ? Number(totalSupply) + 1 : 1;
+
+      // 5. Mint NFT con URL completa de metadata
       await mintAsync({
         args: [metadataUrl],
       });
 
       toast.success('NFT creado exitosamente!');
+
+      // 6. Si se debe listar, proceder con el listado
+      if (nftData.shouldList && nftData.price) {
+        toast.info('Aprobando NFT para el marketplace...');
+        
+        // Aprobar el marketplace para transferir el NFT
+        await approveAsync({
+          args: [CONTRACT_ADDRESSES.MARKETPLACE, BigInt(nextTokenId)],
+        });
+
+        toast.info('Listando NFT para venta...');
+        
+        // Listar el NFT
+        const priceInWei = parseUnits(nftData.price, 18);
+        await listAsync({
+          args: [CONTRACT_ADDRESSES.NFT, BigInt(nextTokenId), priceInWei],
+        });
+
+        toast.success('NFT creado y listado exitosamente!');
+      }
+
       setIsCreating(false);
-      
-      // Nota: El listado se haría en un paso separado después de obtener el tokenId
-      // desde el evento o consultando el último token minteado
       
     } catch (error) {
       console.error('Error creating NFT:', error);

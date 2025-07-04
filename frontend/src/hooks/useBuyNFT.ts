@@ -43,7 +43,7 @@ export const useBuyNFT = () => {
     functionName: 'buyNFT',
   });
 
-  const buyNFT = async (tokenId: number, price: bigint) => {
+  const buyNFT = async (listingId: number, price: bigint) => {
     if (!address) {
       toast.error('Conecta tu wallet primero');
       return;
@@ -74,7 +74,7 @@ export const useBuyNFT = () => {
       toast.info('Comprando NFT...');
 
       await buyAsync({
-        args: [BigInt(tokenId)],
+        args: [BigInt(listingId)],
       });
 
       toast.success('¡NFT comprado exitosamente!');
