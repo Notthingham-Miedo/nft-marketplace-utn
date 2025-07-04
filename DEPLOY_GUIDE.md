@@ -84,6 +84,11 @@ O en Windows:
 type contract-addresses.json
 ```
 
+### 3.3 Carga de DIP a 3 cuentas para permitir realizar transacciones
+```bash
+npx hardhat run scripts/distribute-token.js --network localhost
+```
+
 ## 🦊 Paso 4: Configurar Metamask
 
 ### 4.1 Agregar red Hardhat a Metamask
