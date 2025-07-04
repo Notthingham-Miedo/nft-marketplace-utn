@@ -25,9 +25,10 @@ Actividad de cierre: Deploy y testeo local del ecosistema completo (ERC20 + NFT 
 Flujo 4: Frontend Web3 - Interfaz de Usuario
 Objetivo: Crear la interfaz para interactuar con los contratos
 
-Configuración de React con Web3Modal/Metamask
-Componentes para mostrar NFTs disponibles
-Funcionalidades de publicar y comprar NFTs
+Configuración de React con RainbowKit + Wagmi + Viem (stack moderno Web3)
+Integración de Pinata para almacenamiento IPFS
+Componentes para mostrar NFTs disponibles con metadata
+Funcionalidades de publicar y comprar NFTs con validaciones UX
 Actividad de cierre: Flujo completo en local (crear NFT, listar, aprobar tokens, comprar)
 
 Flujo 5: Despliegue en Testnet y Validación

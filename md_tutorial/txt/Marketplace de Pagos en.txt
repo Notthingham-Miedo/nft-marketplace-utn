@@ -114,70 +114,310 @@ Ventajas sobre ERC721 básico:
 - Validar eventos : Confirmar emisión correcta
 
 ---
-Frontend Web3 - Estructura base
+# Flujo 4: Frontend Web3 - Interfaz de Usuario
 
-Componentes React -> Interfaz de usuario modular
-Conexión Wallet -> Integración con Metamask
-Providers -> Conexión a blockchain
-Servicios Web3 -> Interacción con contrato
+## Estructura base del frontend
 
-Conexión con Metamask
-1. Web3Modal: Biblioteca para múltiples wallets
-2. eth_requestAccounts: Solicitar permiso de conexión
-3. Obtener Signer: Objeto para firmar transacciones
-4. Verificar conexión: Validar estado y red correct
+Tecnologías principales -> React, TypeScript, TailwindCSS
+Stack Web3 moderno -> RainbowKit + Wagmi + Viem
+Componentes React -> Interfaz de usuario modular y reutilizable
+Servicios IPFS -> Pinata para almacenamiento descentralizado
 
-Mostrar NFTs disponibles
-- Obtener lista: Consultar totalSupply() del contrato
-- Leer metadata: Fetch desde IPFS usando tokenURI
-- Renderizar imágenes: Mostrar visualmente los NFTs
-- Mostrar precios: Información de venta desde marketplace
+## Configuración inicial del proyecto
 
-Publicar NFT
-- Formulario con upload: Subir imagen a IPFS
-- Generar metadata: Crear JSON con datos del NFT
-- Mintear NFT: Crear token con URI de metadata
-- Listar para venta: Establecer precio con listNFT()
+### Instalación de dependencias
+```bash
+npm create react-app marketplace-frontend --template typescript
+npm install @rainbow-me/rainbowkit wagmi viem @tanstack/react-query
+npm install axios react-toastify lucide-react
+npm install @tailwindcss/forms
+```
 
-Comprar NFT
-- Ver precio ERC20: Mostrar costo en tokens personalizados
-- Aprobar gasto: Autorizar tokens para marketplace
-- Ejecutar compra: Llamar a buyNFT() del contrato
-- Recibir NFT: Actualizar wallet con nuevo activo
+### Configuración de RainbowKit y Wagmi
+```typescript
+// wagmi.config.ts
+import { getDefaultConfig } from '@rainbow-me/rainbowkit';
+import { mainnet, polygon, polygonAmoy } from 'wagmi/chains';
 
-Actividad: Flujo completo
-1. Crear NFT: Subir arte a IPFS y mintear
-2. Listar para venta: Establecer precio en ERC20
-3. Aprobar tokens: Autorizar gasto ERC20
-4. Comprar NFT: Ejecutar transacción completa
+export const config = getDefaultConfig({
+  appName: 'NFT Marketplace',
+  projectId: 'YOUR_WALLET_CONNECT_PROJECT_ID',
+  chains: [mainnet, polygon, polygonAmoy],
+});
+```
 
-Manejo de errores
-Transacciones pendientes -> Indicador de carga y Estado de confirmación
-Feedback visual -> Notificaciones toast y Cambios de estado UI
-Errores comunes -> Gas insuficiente y Rechazo de usuario
-Mensajes claros -> Traducir códigos técnicos y Sugerir soluciones
+### Providers configuración
+```typescript
+// App.tsx
+import { WagmiProvider } from 'wagmi';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { RainbowKitProvider } from '@rainbow-me/rainbowkit';
+import { config } from './wagmi.config';
+```
 
-Validaciones UX
-1. Botones con estados
-• Habilitado: acción disponible
-• Deshabilitado: requisitos no cumplidos
-• Loading: transacción en proceso
-• Error: falló la operación
-2. Indicadores visuales
-• Spinners para procesos
-• Barras de progreso
-• Iconos de estado
-• Tooltips explicativos
-3. Mensajes contextuales
-• Información proactiva
-• Alertas preventivas
-• Errores descriptivos
-• Éxito con detalle
+## Conexión de Wallet con RainbowKit
 
-Integración IPFS en frontend
-1. Instalar SDK -> npm install web3.storage
-2. Configurar API -> Token de acceso IPFS
-3. Subir archivos -> client.put() desde JavaScript
+### Componente ConnectButton
+- RainbowKit ConnectButton: Botón integrado para múltiples wallets
+- Soporte automático: Metamask, WalletConnect, Coinbase, Trust Wallet
+- Estado de conexión: Manejo automático del estado conectado/desconectado
+- Cambio de red: Interfaz para cambiar entre chains configuradas
+
+### Hooks de Wagmi para estado
+```typescript
+import { useAccount, useConnect, useDisconnect } from 'wagmi';
+
+const { address, isConnected } = useAccount();
+const { connect, connectors } = useConnect();
+const { disconnect } = useDisconnect();
+```
+
+### Validación de red
+```typescript
+import { useChainId, useSwitchChain } from 'wagmi';
+
+const chainId = useChainId();
+const { switchChain } = useSwitchChain();
+
+// Verificar si está en Polygon Amoy (chainId: 80002)
+const isCorrectNetwork = chainId === 80002;
+```
+
+## Mostrar NFTs disponibles
+
+### Hook personalizado para NFTs
+```typescript
+import { useReadContract, useReadContracts } from 'wagmi';
+
+const useNFTList = () => {
+  // Obtener total supply
+  const { data: totalSupply } = useReadContract({
+    address: NFT_CONTRACT_ADDRESS,
+    abi: nftAbi,
+    functionName: 'totalSupply',
+  });
+
+  // Obtener metadata de múltiples NFTs
+  const { data: nftData } = useReadContracts({
+    contracts: Array.from({ length: totalSupply }, (_, i) => ({
+      address: NFT_CONTRACT_ADDRESS,
+      abi: nftAbi,
+      functionName: 'tokenURI',
+      args: [i + 1],
+    })),
+  });
+};
+```
+
+### Componente NFTCard
+- Imagen desde IPFS: Renderizar usando gateway de Pinata
+- Metadata display: Nombre, descripción, atributos
+- Estado de venta: Precio en tokens ERC20 o "No disponible"
+- Acciones: Botones para comprar o gestionar NFT
+
+### Fetch de metadata desde Pinata
+```typescript
+const fetchNFTMetadata = async (tokenURI: string) => {
+  try {
+    // Convertir IPFS hash a URL de Pinata gateway
+    const ipfsHash = tokenURI.replace('ipfs://', '');
+    const url = `https://gateway.pinata.cloud/ipfs/${ipfsHash}`;
+    const response = await fetch(url);
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching metadata:', error);
+  }
+};
+```
+
+## Publicar NFT
+
+### Formulario de creación
+- Upload de imagen: Input file con preview
+- Campos metadata: Nombre, descripción, atributos personalizados
+- Validación: Verificar campos requeridos y formato de imagen
+- Precio en ERC20: Input para establecer precio de venta
+
+### Subida a Pinata IPFS
+```typescript
+import axios from 'axios';
+
+const uploadToPinata = async (file: File) => {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const response = await axios.post(
+    'https://api.pinata.cloud/pinning/pinFileToIPFS',
+    formData,
+    {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+        'pinata_api_key': process.env.REACT_APP_PINATA_API_KEY,
+        'pinata_secret_api_key': process.env.REACT_APP_PINATA_SECRET_KEY,
+      },
+    }
+  );
+
+  return response.data.IpfsHash;
+};
+```
+
+### Mint y listar NFT
+```typescript
+import { useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
+
+const useMintAndList = () => {
+  const { writeContract, data: hash } = useWriteContract();
+  const { isLoading, isSuccess } = useWaitForTransactionReceipt({ hash });
+
+  const mintNFT = async (metadataURI: string, price: bigint) => {
+    // 1. Mint NFT
+    writeContract({
+      address: NFT_CONTRACT_ADDRESS,
+      abi: nftAbi,
+      functionName: 'mint',
+      args: [metadataURI],
+    });
+
+    // 2. Aprobar marketplace
+    // 3. Listar para venta
+  };
+};
+```
+
+## Comprar NFT
+
+### Verificar balance ERC20
+```typescript
+const { data: balance } = useReadContract({
+  address: TOKEN_CONTRACT_ADDRESS,
+  abi: erc20Abi,
+  functionName: 'balanceOf',
+  args: [address],
+});
+
+const { data: allowance } = useReadContract({
+  address: TOKEN_CONTRACT_ADDRESS,
+  abi: erc20Abi,
+  functionName: 'allowance',
+  args: [address, MARKETPLACE_CONTRACT_ADDRESS],
+});
+```
+
+### Proceso de compra
+```typescript
+const useBuyNFT = () => {
+  const { writeContract } = useWriteContract();
+
+  const buyNFT = async (tokenId: number, price: bigint) => {
+    // 1. Verificar balance suficiente
+    if (balance < price) {
+      throw new Error('Balance insuficiente');
+    }
+
+    // 2. Aprobar tokens si es necesario
+    if (allowance < price) {
+      await writeContract({
+        address: TOKEN_CONTRACT_ADDRESS,
+        abi: erc20Abi,
+        functionName: 'approve',
+        args: [MARKETPLACE_CONTRACT_ADDRESS, price],
+      });
+    }
+
+    // 3. Ejecutar compra
+    await writeContract({
+      address: MARKETPLACE_CONTRACT_ADDRESS,
+      abi: marketplaceAbi,
+      functionName: 'buyNFT',
+      args: [tokenId],
+    });
+  };
+};
+```
+
+## Actividad: Flujo completo en local
+
+### Configuración del entorno
+1. Configurar variables: Claves API de Pinata, direcciones de contratos
+2. Setup RainbowKit: Configurar providers y chains
+3. Iniciar Hardhat: Red local para testing
+4. Deploy contratos: ERC20, NFT y Marketplace en local
+
+### Flujo de testing completo
+1. **Conectar wallet**: Usar RainbowKit para conectar Metamask
+2. **Crear NFT**: Subir imagen a Pinata, generar metadata, mintear NFT
+3. **Listar para venta**: Establecer precio en tokens ERC20
+4. **Aprobar tokens**: Autorizar gasto de tokens al marketplace
+5. **Comprar NFT**: Ejecutar transacción completa de compra
+6. **Verificar transferencia**: NFT transferido al comprador
+
+## Manejo de errores y UX
+
+### Feedback visual con React Toastify
+```typescript
+import { toast } from 'react-toastify';
+
+const handleTransaction = async () => {
+  try {
+    toast.info('Iniciando transacción...');
+    const tx = await writeContract({...});
+    toast.loading('Esperando confirmación...');
+    await waitForTransactionReceipt(tx);
+    toast.success('¡Transacción exitosa!');
+  } catch (error) {
+    toast.error('Error en la transacción');
+  }
+};
+```
+
+### Estados de botones
+```typescript
+const ButtonState = {
+  IDLE: 'Comprar NFT',
+  APPROVING: 'Aprobando tokens...',
+  BUYING: 'Comprando NFT...',
+  SUCCESS: 'Compra exitosa',
+  ERROR: 'Error en compra'
+};
+```
+
+### Validaciones UX
+1. **Estados de carga**: Spinners durante transacciones
+2. **Validación de red**: Mostrar alerta si no está en Amoy
+3. **Balance insuficiente**: Deshabilitar botón y mostrar mensaje
+4. **Errores descriptivos**: Traducir errores técnicos a mensajes claros
+
+## Integración IPFS con Pinata
+
+### Configuración del SDK de Pinata
+```typescript
+// pinata.config.ts
+import axios from 'axios';
+
+const pinataAPI = axios.create({
+  baseURL: 'https://api.pinata.cloud',
+  headers: {
+    'pinata_api_key': process.env.REACT_APP_PINATA_API_KEY,
+    'pinata_secret_api_key': process.env.REACT_APP_PINATA_SECRET_KEY,
+  },
+});
+
+export const uploadJSONToPinata = async (jsonData: object) => {
+  const response = await pinataAPI.post('/pinning/pinJSONToIPFS', jsonData);
+  return response.data.IpfsHash;
+};
+```
+
+### Gateway de Pinata para visualización
+```typescript
+const getIPFSUrl = (hash: string) => {
+  return `https://gateway.pinata.cloud/ipfs/${hash}`;
+};
+
+// En componente React
+<img src={getIPFSUrl(imageHash)} alt="NFT" />
+```
 4. Mostrar contenido -> Renderizar desde gateway IPFS
 
 Configuración para testnet Amoy
