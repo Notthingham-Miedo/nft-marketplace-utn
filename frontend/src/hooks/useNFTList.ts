@@ -10,9 +10,50 @@ const loadMetadataFromIPFS = async (tokenURI: string, tokenId: number): Promise<
   
   try {
     let metadataUrl = tokenURI;
-    if (tokenURI.startsWith('ipfs://')) {
-      metadataUrl = tokenURI.replace('ipfs://', 'https://gateway.pinata.cloud/ipfs/');
-      console.log(`Converted IPFS URL: ${metadataUrl}`);
+    
+    // Detectar y corregir URLs malformadas del contrato
+    if (tokenURI.includes('ipfs.io/ipfs/data:application/json')) {
+      // URL malformada del contrato, extraer solo la parte data:
+      const dataUrlMatch = tokenURI.match(/(data:application\/json[^"]*)/);
+      if (dataUrlMatch) {
+        metadataUrl = dataUrlMatch[1];
+        console.log(`Fixed malformed contract URL from ${tokenURI} to ${metadataUrl}`);
+      }
+    } else if (tokenURI.includes('ipfs.io/ipfs/ipfs://')) {
+      // Duplicación de prefijos IPFS
+      const hashMatch = tokenURI.match(/([a-zA-Z0-9]{46,})/);
+      if (hashMatch) {
+        const hash = hashMatch[0];
+        metadataUrl = `https://gateway.pinata.cloud/ipfs/${hash}`;
+        console.log(`Fixed duplicated IPFS URL from ${tokenURI} to ${metadataUrl}`);
+      }
+    } else if (tokenURI.includes('ipfs://')) {
+      // URL normal de IPFS
+      const hashMatch = tokenURI.match(/([a-zA-Z0-9]{46,})/);
+      if (hashMatch) {
+        const hash = hashMatch[0];
+        metadataUrl = `https://gateway.pinata.cloud/ipfs/${hash}`;
+        console.log(`Converted IPFS URL from ${tokenURI} to ${metadataUrl}`);
+      }
+    } else if (tokenURI.startsWith('http')) {
+      // Si ya es una URL HTTP, usarla directamente
+      metadataUrl = tokenURI;
+    } else if (tokenURI.startsWith('data:')) {
+      // Si es un data URL, usarla directamente
+      metadataUrl = tokenURI;
+    } else {
+      // Si es solo un hash, agregar el gateway
+      metadataUrl = `https://gateway.pinata.cloud/ipfs/${tokenURI}`;
+    }
+    
+    console.log(`Final metadata URL: ${metadataUrl}`);
+    
+    // Si es un data URL, decodificar directamente
+    if (metadataUrl.startsWith('data:application/json;base64,')) {
+      const base64Data = metadataUrl.replace('data:application/json;base64,', '');
+      const metadata = JSON.parse(atob(base64Data));
+      console.log(`Decoded data URL metadata for token ${tokenId}:`, metadata);
+      return metadata;
     }
     
     const controller = new AbortController();
@@ -32,12 +73,8 @@ const loadMetadataFromIPFS = async (tokenURI: string, tokenId: number): Promise<
       const metadata = await response.json();
       console.log(`Raw metadata for token ${tokenId}:`, metadata);
       
-      // Procesar la URL de la imagen si usa IPFS
-      if (metadata.image && metadata.image.startsWith('ipfs://')) {
-        const originalImage = metadata.image;
-        metadata.image = metadata.image.replace('ipfs://', 'https://gateway.pinata.cloud/ipfs/');
-        console.log(`Converted image URL from ${originalImage} to ${metadata.image}`);
-      }
+      // No procesamos la URL de la imagen aquí - lo haremos en el componente
+      // Esto permite que el componente maneje diferentes tipos de URLs correctamente
       
       console.log(`Processed metadata for token ${tokenId}:`, metadata);
       return metadata;
@@ -46,11 +83,11 @@ const loadMetadataFromIPFS = async (tokenURI: string, tokenId: number): Promise<
     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
   } catch (error) {
     console.error(`Error loading metadata for token ${tokenId}:`, error);
-    // Retornar metadata por defecto
+    // Retornar metadata por defecto solo si realmente falló la carga
     const fallbackMetadata = {
       name: `NFT #${tokenId}`,
-      description: `NFT Token ID ${tokenId}`,
-      image: `https://via.placeholder.com/300x300/6366f1/ffffff?text=NFT+%23${tokenId}`,
+      description: `NFT Token ID ${tokenId} - Metadata not available`,
+      image: `https://picsum.photos/300/300?random=${tokenId}`,
       attributes: []
     };
     console.log(`Using fallback metadata for token ${tokenId}:`, fallbackMetadata);
@@ -222,7 +259,7 @@ export const useNFTList = () => {
             metadata: metadata || {
               name: `NFT #${tokenId}`,
               description: `NFT Token ID ${tokenId}`,
-              image: `https://via.placeholder.com/300x300/6366f1/ffffff?text=NFT+%23${tokenId}`,
+              image: `https://picsum.photos/300/300?random=${tokenId}`,
               attributes: []
             },
             owner,

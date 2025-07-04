@@ -27,10 +27,28 @@ export const NFTCard: React.FC<NFTCardProps> = ({ nft, onRefresh }) => {
   };
 
   const getImageSrc = () => {
+    // Si hay error de imagen o no hay imagen, usar placeholder
     if (imageError || !nft.metadata?.image) {
-      return `https://via.placeholder.com/300x300/6366f1/ffffff?text=NFT+%23${nft.tokenId}`;
+      return `https://picsum.photos/300/300?random=${nft.tokenId}`;
     }
-    return getIPFSUrl(nft.metadata.image);
+    
+    // Log para debug
+    console.log(`Getting image src for NFT ${nft.tokenId}:`, nft.metadata.image);
+    
+    // Si la imagen ya es una URL completa (http/https), usarla directamente
+    if (nft.metadata.image.startsWith('http')) {
+      return nft.metadata.image;
+    }
+    
+    // Si es un data URL (base64), usarla directamente
+    if (nft.metadata.image.startsWith('data:')) {
+      return nft.metadata.image;
+    }
+    
+    // Si es un hash de IPFS, convertirlo a URL completa
+    const ipfsUrl = getIPFSUrl(nft.metadata.image);
+    console.log(`Converted to IPFS URL for NFT ${nft.tokenId}:`, ipfsUrl);
+    return ipfsUrl;
   };
 
   const isOwner = address?.toLowerCase() === nft.owner.toLowerCase();

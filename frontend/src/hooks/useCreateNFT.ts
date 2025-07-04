@@ -4,7 +4,6 @@ import { nftAbi } from '../constants/abis';
 import { uploadImageToPinata, uploadJSONToPinata, NFTMetadata } from '../services/pinata';
 import { toast } from 'react-toastify';
 import { useState } from 'react';
-import { parseEther } from 'viem';
 
 export interface CreateNFTData {
   name: string;
@@ -55,12 +54,13 @@ export const useCreateNFT = () => {
       
       // 3. Subir metadata a Pinata
       const metadataHash = await uploadJSONToPinata(metadata);
+      const metadataUrl = `ipfs://${metadataHash}`;
 
       toast.info('Creando NFT...');
 
-      // 4. Mint NFT
+      // 4. Mint NFT con URL completa de metadata
       await mintAsync({
-        args: [address, metadataHash],
+        args: [address, metadataUrl],
       });
 
       toast.success('NFT creado exitosamente!');

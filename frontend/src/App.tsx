@@ -1,22 +1,40 @@
 import React from 'react';
 import { WagmiConfig } from 'wagmi';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { RainbowKitProvider } from '@rainbow-me/rainbowkit';
 import { ToastContainer } from 'react-toastify';
 import { config, chains } from './config/wagmi';
+import { CustomRainbowKitProvider } from './components/CustomRainbowKitProvider';
 import { Marketplace } from './components/Marketplace';
+
+// Importar silenciador de errores ENS
+import './utils/silenceENSErrors';
 
 import '@rainbow-me/rainbowkit/styles.css';
 import 'react-toastify/dist/ReactToastify.css';
 import './index.css';
 
-const queryClient = new QueryClient();
+// Configuración del QueryClient para manejar errores de ENS
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: (failureCount, error) => {
+        // No reintentar errores de ENS
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        if (errorMessage.includes('ENS') || errorMessage.includes('reverse')) {
+          return false;
+        }
+        return failureCount < 3;
+      },
+      retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
+    },
+  },
+});
 
 function App() {
   return (
     <WagmiConfig config={config}>
       <QueryClientProvider client={queryClient}>
-        <RainbowKitProvider chains={chains}>
+        <CustomRainbowKitProvider chains={chains}>
           <div className="App">
             <Marketplace />
             <ToastContainer
@@ -32,7 +50,7 @@ function App() {
               theme="light"
             />
           </div>
-        </RainbowKitProvider>
+        </CustomRainbowKitProvider>
       </QueryClientProvider>
     </WagmiConfig>
   );

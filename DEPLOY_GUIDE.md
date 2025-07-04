@@ -44,7 +44,7 @@ Account #0: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 (10000 ETH)
 Private Key: 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
 
 Account #1: 0x70997970C51812dc3A010C7d01b50e0d17dc79C8 (10000 ETH)
-Private Key: 0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a619768b7c21b37adf7
+Private Key: 0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d
 ...
 ```
 
@@ -198,6 +198,10 @@ npx hardhat clean
 
 ### Error: "Transaction reverted"
 - **Solución:** Revisa que tengas suficiente ETH para gas y que los contratos estén desplegados
+
+### Error: "ContractFunctionExecutionError: reverse" (ENS)
+- **Problema:** RainbowKit intenta resolver nombres ENS que no existen en Hardhat
+- **Solución:** Los errores están silenciados automáticamente en el frontend, no afectan la funcionalidad
 
 ### Metamask no se conecta
 - **Solución:** 

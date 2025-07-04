@@ -58,7 +58,29 @@ export const fetchMetadataFromIPFS = async (ipfsHash: string): Promise<NFTMetada
 };
 
 export const getIPFSUrl = (hash: string): string => {
-  // Limpiar el hash si viene con ipfs://
-  const cleanHash = hash.replace('ipfs://', '');
+  // Si ya es una URL completa, devolverla tal como está
+  if (hash.startsWith('http')) {
+    return hash;
+  }
+  
+  // Si es un data URL (base64), devolverla tal como está
+  if (hash.startsWith('data:')) {
+    return hash;
+  }
+  
+  // Limpiar y extraer el hash real de IPFS
+  let cleanHash = hash;
+  if (hash.includes('ipfs://')) {
+    // Extraer solo el hash, removiendo cualquier duplicación o prefijos
+    const hashMatch = hash.match(/([a-zA-Z0-9]{46,})/);
+    if (hashMatch) {
+      cleanHash = hashMatch[0];
+    } else {
+      // Fallback: remover prefijo ipfs://
+      cleanHash = hash.replace('ipfs://', '');
+    }
+  }
+  
+  // Devolver URL de gateway de Pinata
   return `https://gateway.pinata.cloud/ipfs/${cleanHash}`;
 };

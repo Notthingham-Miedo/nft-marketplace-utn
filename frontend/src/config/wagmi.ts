@@ -1,11 +1,17 @@
 import { getDefaultWallets, connectorsForWallets } from '@rainbow-me/rainbowkit';
 import { configureChains, createConfig } from 'wagmi';
-import { mainnet, polygon, polygonMumbai, hardhat } from 'wagmi/chains';
+import { mainnet, polygon, polygonMumbai } from 'wagmi/chains';
 import { publicProvider } from 'wagmi/providers/public';
+import { hardhatLocal } from './chains';
 
+// Configuración de chains sin ENS para desarrollo
 const { chains, publicClient, webSocketPublicClient } = configureChains(
-  [hardhat, polygonMumbai, polygon, mainnet],
-  [publicProvider()]
+  [hardhatLocal, polygonMumbai, polygon, mainnet],
+  [publicProvider()],
+  {
+    // Deshabilitar ENS para evitar errores en desarrollo
+    pollingInterval: 4000,
+  }
 );
 
 const { wallets } = getDefaultWallets({
