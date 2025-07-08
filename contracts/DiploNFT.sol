@@ -22,9 +22,20 @@ contract DiploNFT is ERC721Enumerable, Ownable {
     function mintNFT(
         address to,
         string memory ipfsHash
-    ) public onlyOwner returns (uint256) {
+    ) public returns (uint256) {
         uint256 tokenId = _nextTokenId++;
         _safeMint(to, tokenId);
+        _setTokenURI(tokenId, ipfsHash);
+        return tokenId;
+    }
+
+    /**
+     * @dev Mintea un nuevo NFT con metadata IPFS (función pública)
+     * @param ipfsHash Hash IPFS del metadata JSON
+     */
+    function mint(string memory ipfsHash) public returns (uint256) {
+        uint256 tokenId = _nextTokenId++;
+        _safeMint(msg.sender, tokenId);
         _setTokenURI(tokenId, ipfsHash);
         return tokenId;
     }
@@ -52,26 +63,20 @@ contract DiploNFT is ERC721Enumerable, Ownable {
         );
 
         string memory _tokenURI = _tokenURIs[tokenId];
-        string memory base = _baseURI();
-
-        // Si no hay base URI, devolver el token URI
-        if (bytes(base).length == 0) {
-            return _tokenURI;
-        }
-
-        // Si hay token URI, concatenar base + token URI
+        
+        // Si el token URI ya es una URL completa (data: o https:), devolverlo tal como está
         if (bytes(_tokenURI).length > 0) {
-            return string(abi.encodePacked(base, _tokenURI));
+            return _tokenURI;
         }
 
         return super.tokenURI(tokenId);
     }
 
     /**
-     * @dev Base URI para metadata (IPFS gateway)
+     * @dev Base URI para metadata (IPFS gateway) - solo se usa si no hay token URI específico
      */
     function _baseURI() internal pure override returns (string memory) {
-        return "https://ipfs.io/ipfs/";
+        return "https://gateway.pinata.cloud/ipfs/";
     }
 
     /**
