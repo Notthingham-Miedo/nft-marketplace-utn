@@ -66,6 +66,34 @@ async function main() {
 
   console.log("\n🎉 Deploy completo exitoso!");
   console.log("🔗 Contratos listos para testing");
+
+  // 6. Actualizar direcciones en frontend automáticamente
+  console.log("\n🔄 Actualizando frontend...");
+  try {
+    const { exec } = require('child_process');
+    exec('node scripts/update-frontend-addresses.js', (error, stdout, stderr) => {
+      if (error) {
+        console.error('⚠️ Error actualizando frontend:', error.message);
+      } else {
+        console.log(stdout);
+      }
+    });
+  } catch (error) {
+    console.log('⚠️ No se pudo actualizar frontend automáticamente');
+    console.log('💡 Ejecuta manualmente: node scripts/update-frontend-addresses.js');
+  }
+
+  console.log("\n📋 RESUMEN DE DEPLOY:");
+  console.log("═══════════════════════════════════════════");
+  console.log(`🪙 DiploToken: ${tokenAddress}`);
+  console.log(`🖼️ DiploNFT: ${nftAddress}`);
+  console.log(`🏪 DiploMarketplace: ${marketplaceAddress}`);
+  console.log("═══════════════════════════════════════════");
+  console.log("\n✅ Próximos pasos:");
+  console.log("1. Configurar Metamask (red Hardhat Local, Chain ID: 31337)");
+  console.log("2. Importar cuenta de testing");
+  console.log("3. Mintear tokens DIP para pruebas");
+  console.log("4. Iniciar frontend: cd frontend && npm run dev");
 }
 
 main()
